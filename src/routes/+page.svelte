@@ -11,7 +11,7 @@
 
 <div class="scene">
   <Canvas>
-    <Scene3 />
+    <Scene1 />
   </Canvas>
 </div>
 
@@ -21,5 +21,6 @@
     width: auto;
     height: 700px;
     border: 5px solid black;
+    background-color: #464a61;
   }
 </style>

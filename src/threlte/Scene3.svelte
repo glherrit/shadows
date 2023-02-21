@@ -42,6 +42,7 @@
   let rotation = 0;
   let numberofrays = 11;
   let step = 0;
+  let ntrys = 0;
   useFrame(() => {
     rotation += 0.0;
     lens.surf1.k = -conicend + cstep * step;
@@ -50,6 +51,7 @@
     step += 1;
     if (step > numsteps * 2) {
       step = 0;
+      ntrys += 1;
     }
   });
 

@@ -319,6 +319,7 @@ export function generateYGrid(ap: number, baseraysct: number, beginZ = 0): Ray[]
   for (let i = 0; i < baseraysct; i++) {
     const ys = -ap + i * stepsize
     rays.push({ pVector: new Vector3D(0, ys, beginZ), eDir: e0 })
+    rays.push({ pVector: new Vector3D(ys, 0, beginZ), eDir: e0 })
   }
   return rays
 }
