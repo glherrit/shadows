@@ -70,10 +70,24 @@
     [0.423, 5.998],
     [0.0, 6.0],
   ];
+  let totalRotations = 0;
+  let goalRotations = 1000;
+  let rotationTimer = 0.01;
 
   let rotation = 0;
-  useFrame(() => {
-    rotation += 0.02;
+  useFrame(({ clock }) => {
+    /*
+    if (totalRotations < goalRotations) {
+      rotation += 0.02;
+      totalRotations++;
+    }
+    */
+    if (rotationTimer > 0) {
+      rotation += 0.02;
+      rotationTimer -= clock.getDelta();
+      console.log(rotationTimer);
+      console.log(clock.getDelta());
+    }
   });
 
   const ptsvector: THREE.Vector2[] = [];

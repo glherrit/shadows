@@ -38,6 +38,7 @@
 
   const boxsize = 30;
   const axissize = 20;
+  const showCoords = false;
 </script>
 
 <T.Group rotation={[rotation / 3, 0, rotation]}>
@@ -48,9 +49,11 @@
 </T.Group>
 <T.AmbientLight intensity={0.04} />
 
-<Coords
-  lengths={[-axissize, axissize, -axissize, axissize, -axissize, axissize]}
-/>
+{#if showCoords}
+  <Coords
+    lengths={[-axissize, axissize, -axissize, axissize, -axissize, axissize]}
+  />
+{/if}
 
 <T.Mesh
   geometry={new BoxGeometry(boxsize, boxsize, boxsize)}

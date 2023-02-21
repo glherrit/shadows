@@ -11,7 +11,7 @@
 
 <div class="scene">
   <Canvas>
-    <Scene1 />
+    <Scene3 />
   </Canvas>
 </div>
 
