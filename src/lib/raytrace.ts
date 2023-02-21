@@ -312,15 +312,34 @@ export function generateFibonacciRays(ap: number, baseraysct: number, beginZ = 0
   return rays
 }
 
-export function generateYGrid(ap: number, baseraysct: number, beginZ = 0): Ray[] {
+export function generateYGrid(ap: number, baseraysct: number, beginZ = 0, twoAxis = false): Ray[] {
   const rays: Ray[] = []
   const e0 = new Vector3D(0, 0, 1)
   const stepsize = 2 * ap / (baseraysct-1)
   for (let i = 0; i < baseraysct; i++) {
     const ys = -ap + i * stepsize
     rays.push({ pVector: new Vector3D(0, ys, beginZ), eDir: e0 })
-    rays.push({ pVector: new Vector3D(ys, 0, beginZ), eDir: e0 })
+    if (twoAxis) rays.push({ pVector: new Vector3D(ys, 0, beginZ), eDir: e0 })
   }
+  return rays
+}
+
+export function generateCircleGrid(ap: number, baseraysct: number, beginZ = 0, twoAxis = false): Ray[] {
+  const rays: Ray[] = []
+  const e0 = new Vector3D(0, 0, 1)
+  const stepsize = 2 * ap / (baseraysct-1)
+  for (let i = 0; i < baseraysct; i++) {
+    const ys = -ap + i * stepsize
+    rays.push({ pVector: new Vector3D(0, ys, beginZ), eDir: e0 })
+    if (twoAxis) rays.push({ pVector: new Vector3D(ys, 0, beginZ), eDir: e0 })
+  }
+
+  for (let theta = 0.0; theta < Math.PI * 2; theta += Math.PI / 45) {
+    const x = ap * Math.cos(theta)
+    const y = ap * Math.sin(theta)
+    rays.push({ pVector: new Vector3D(x, y, beginZ), eDir: e0 })
+  }
+
   return rays
 }
 

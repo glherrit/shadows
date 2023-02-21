@@ -15,7 +15,11 @@
     type LightSource,
   } from "$lib/lightSource";
   import { genSolidLens } from "$lib/ThreeGutils";
-  import { generateYGrid, trace3DRayPath } from "$lib/raytrace";
+  import {
+    generateCircleGrid,
+    generateYGrid,
+    trace3DRayPath,
+  } from "$lib/raytrace";
   import type { Vector3D } from "$lib/vector";
 
   let lens: Lens = new Lens(
@@ -33,7 +37,7 @@
   let a4end = 2.909919e-7;
   let a6end = -2.13825e-10;
 
-  let numsteps = 100;
+  let numsteps = 50;
 
   let cstep = conicend / numsteps;
   let a4step = a4end / numsteps;
@@ -78,7 +82,12 @@
     surf2pts = [];
     surfimgpts = [];
     //const crays = generateCollimatedRayBundle(halfap, 1, rayInitialZPosition)
-    const crays = generateYGrid(entrancePupilHalfDiameter(source), numrays, -5);
+    const crays = generateCircleGrid(
+      entrancePupilHalfDiameter(source),
+      numrays,
+      -5,
+      true
+    );
     crays.forEach((ray) => {
       let ps = trace3DRayPath(ray.pVector, ray.eDir, lens, source, refocus);
       surf1pts.push(new Vector3(ps[1].x, ps[1].y, ps[1].z));
@@ -113,7 +122,7 @@
 
   $: raygroup = addRays(lens, source, 0, numberofrays);
 
-  let cameraPosition: [number, number, number] = [-50, 0, 0];
+  let cameraPosition: [number, number, number] = [-50, 0, -30];
 </script>
 
 <T.Group rotation={[rotation / 3, 0, rotation]}>
