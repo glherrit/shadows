@@ -49,19 +49,15 @@
   let ntrys = 0;
 
   useFrame(() => {
-    lens.surf1.k = -conicend + cstep * step;
-    lens.surf1.asphericTerms.coeffs[0] = -a4end + a4step * step;
-    lens.surf1.asphericTerms.coeffs[1] = -a6end + a6step * step;
-    step += 1;
-    if (step > numsteps * 2) {
-      step = 0;
-      ntrys += 1;
-    }
-
-    if (ntrys > 5) {
-      cstep = 0;
-      a4step = 0;
-      a6step = 0;
+    if (ntrys < 5) {
+      lens.surf1.k = -conicend + cstep * step;
+      lens.surf1.asphericTerms.coeffs[0] = -a4end + a4step * step;
+      lens.surf1.asphericTerms.coeffs[1] = -a6end + a6step * step;
+      step += 1;
+      if (step > numsteps * 2) {
+        step = 0;
+        ntrys += 1;
+      }
     }
   });
 

@@ -25,7 +25,7 @@
 
   let rotation = 0;
   useFrame(() => {
-    rotation += 0.0;
+    //rotation += 0.0;
   });
 
   const boxsize = 30;

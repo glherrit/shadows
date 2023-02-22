@@ -334,7 +334,7 @@ export function generateCircleGrid(ap: number, baseraysct: number, beginZ = 0, t
     if (twoAxis) rays.push({ pVector: new Vector3D(ys, 0, beginZ), eDir: e0 })
   }
 
-  for (let theta = 0.0; theta < Math.PI * 2; theta += Math.PI / 45) {
+  for (let theta = 0.0; theta < Math.PI * 2; theta += Math.PI / 10) {
     const x = ap * Math.cos(theta)
     const y = ap * Math.sin(theta)
     rays.push({ pVector: new Vector3D(x, y, beginZ), eDir: e0 })
