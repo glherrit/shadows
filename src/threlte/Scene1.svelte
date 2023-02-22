@@ -85,8 +85,8 @@
     if (rotationTimer > 0) {
       rotation += 0.02;
       rotationTimer -= clock.getDelta();
-      console.log(rotationTimer);
-      console.log(clock.getDelta());
+      //console.log(rotationTimer);
+      //console.log(clock.getDelta());
     }
   });
 

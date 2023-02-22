@@ -4,14 +4,6 @@
   import { BoxGeometry } from "three";
   import Coords from "./Coords.svelte";
 
-  const texture = useTexture("src/lib/Fig-12a.jpg", {
-    onError: (error) => {
-      console.warn(`An error occured loading the texture: ${error.message}`);
-    },
-  });
-
-  const mat1 = new THREE.MeshStandardMaterial({ map: texture });
-
   const texts = useTexture([
     "src/pixs/Fig-5.jpg",
     "src/pixs/Fig-9.jpg",
