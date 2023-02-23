@@ -109,7 +109,7 @@
   });
 </script>
 
-<Camera1 />
+<Camera1 cameraPosition={[-100, 20, 0]} />
 
 <T.Mesh
   receiveShadow
