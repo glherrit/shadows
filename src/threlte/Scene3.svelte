@@ -21,6 +21,7 @@
     trace3DRayPath,
   } from "$lib/raytrace";
   import type { Vector3D } from "$lib/vector";
+  import { HTML } from "@threlte/extras";
 
   let lens: Lens = new Lens(
     25,
@@ -48,7 +49,7 @@
   let step = 0;
   let ntrys = 0;
 
-  useFrame(() => {
+  const { start, stop, started } = useFrame(() => {
     if (ntrys < 5) {
       lens.surf1.k = -conicend + cstep * step;
       lens.surf1.asphericTerms.coeffs[0] = -a4end + a4step * step;
@@ -56,10 +57,20 @@
       step += 1;
       if (step > numsteps * 2) {
         step = 0;
-        ntrys += 1;
+        ntrys += 0;
       }
     }
   });
+
+  const toggleUseFrame = () => {
+    if ($started) {
+      console.log("stopping");
+      stop();
+    } else {
+      console.log("starting");
+      start();
+    }
+  };
 
   let surf1pts: Vector3[] = [];
   let surf2pts: Vector3[] = [];
@@ -156,3 +167,17 @@
   </T.Mesh>
   />
 </T.Group>
+
+<HTML
+  position={{ x: 0, y: 20, z: -10 }}
+  rotation={{ x: 0, y: -1.6, z: 0 }}
+  scale={7}
+  transform
+>
+  <button
+    on:click={toggleUseFrame}
+    class="rounded-full px-5 text-black bg-green-500 hover:opacity-90 active:opacity-70"
+  >
+    Start/Stop
+  </button>
+</HTML>

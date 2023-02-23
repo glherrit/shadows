@@ -3,6 +3,7 @@
   import * as THREE from "three";
   import { LatheGeometry } from "three";
   import Camera1 from "./Camera1.svelte";
+  import { HTML } from "@threlte/extras";
 
   const lensshape = [
     [0.0, 0.0],
@@ -75,20 +76,32 @@
   let rotationTimer = 0.01;
 
   let rotation = 0;
-  useFrame(({ clock }) => {
+  const { start, stop, started } = useFrame(({ clock }) => {
+    rotation += 0.02;
     /*
     if (totalRotations < goalRotations) {
       rotation += 0.02;
       totalRotations++;
     }
-    */
+
     if (rotationTimer > 0) {
       rotation += 0.02;
       rotationTimer -= clock.getDelta();
       //console.log(rotationTimer);
       //console.log(clock.getDelta());
     }
+        */
   });
+
+  const toggleUseFrame = () => {
+    if ($started) {
+      console.log("stopping");
+      stop();
+    } else {
+      console.log("starting");
+      start();
+    }
+  };
 
   const ptsvector: THREE.Vector2[] = [];
   lensshape.forEach((pt) => {
@@ -118,3 +131,17 @@
   <T.CircleGeometry args={[40, 128]} />
   <T.MeshPhongMaterial color="lightgrey" />
 </T.Mesh>
+
+<HTML
+  position={{ x: 0, y: 30, z: -60 }}
+  rotation={{ x: 0, y: -1.6, z: 0 }}
+  scale={7}
+  transform
+>
+  <button
+    on:click={toggleUseFrame}
+    class="rounded-full px-5 text-black bg-green-500 hover:opacity-90 active:opacity-70"
+  >
+    Start/Stop
+  </button>
+</HTML>

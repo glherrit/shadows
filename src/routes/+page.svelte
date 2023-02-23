@@ -17,21 +17,22 @@
   <h1 class="text-3xl font-bold underline">Shadow Animation!</h1>
   <li>
     <button class="btn btn-blue" on:click={() => setValue(1)}>
-      Select Scene 1'
+      Scene 1'
     </button>
   </li>
   <li>
     <button class="btn btn-blue" on:click={() => setValue(2)}>
-      Select Scene 2'
+      Scene 2'
     </button>
   </li>
   <li>
     <button class="btn btn-blue" on:click={() => setValue(3)}>
-      Select Scene 3'
+      Scene 3'
     </button>
   </li>
 </div>
 <br />
+
 <div class="scene">
   <Canvas>
     {#if value === 1}
