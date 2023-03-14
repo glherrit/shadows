@@ -2,8 +2,10 @@
   import { T, useFrame } from "@threlte/core";
   import * as THREE from "three";
   import { LatheGeometry } from "three";
-  import Camera1 from "./Camera1.svelte";
+  import Camera1New from "./Camera1New.svelte";
   import { HTML } from "@threlte/extras";
+  import BackgroundGrids from "$lib/components/threlte/BackgroundGrids.svelte";
+  import VerticalGrid from "./VerticalGrid.svelte";
 
   const lensshape = [
     [0.0, 0.0],
@@ -71,14 +73,20 @@
     [0.423, 5.998],
     [0.0, 6.0],
   ];
-  let totalRotations = 0;
-  let goalRotations = 1000;
-  let rotationTimer = 0.01;
 
   let rotation = 0;
+  let onoff = false;
   const { start, stop, started } = useFrame(({ clock }) => {
-    rotation += 0.02;
-    /*
+    if (onoff) {
+      rotation += 0.01;
+      console.log("rotate", clock.getDelta());
+    } else {
+      console.log("no rotation", clock.getDelta());
+    }
+    onoff = !onoff;
+  });
+
+  /*
     if (totalRotations < goalRotations) {
       rotation += 0.02;
       totalRotations++;
@@ -91,7 +99,6 @@
       //console.log(clock.getDelta());
     }
         */
-  });
 
   const toggleUseFrame = () => {
     if ($started) {
@@ -109,7 +116,11 @@
   });
 </script>
 
-<Camera1 cameraPosition={[-100, 20, 0]} />
+<Camera1New />
+
+<!--
+  <VerticalGrid verticalOffset={0} horizontalOffset={0} />
+-->
 
 <T.Mesh
   receiveShadow
@@ -120,9 +131,9 @@
   material={new THREE.MeshPhongMaterial({
     color: "red",
     transparent: true,
-    opacity: 1,
-    shininess: 100,
-    reflectivity: 1,
+    opacity: 0.75,
+    shininess: 5000,
+    side: THREE.DoubleSide,
   })}
 />
 

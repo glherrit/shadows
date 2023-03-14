@@ -10,7 +10,7 @@
   import { InteractiveObject, Line2, T } from "@threlte/core";
   import { Text, useCursor } from "@threlte/extras";
   import * as THREE from "three";
-  import { Group, Vector2, Vector3 } from "three";
+  import { Vector2, Vector3 } from "three";
   import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
   import { Lut } from "three/examples/jsm/math/Lut";
   import BackgroundGrids from "./BackgroundGrids.svelte";
@@ -23,6 +23,10 @@
   export let verticalScale = 10;
   export let fontColor = "white";
 
+  export let showLineMultiColor = true;
+  export let showLineSolidColor = false;
+
+  console.log(xsraw, ysraw);
   const showGrid = true;
   const showImage = true;
   const showMainShadowScreen = false;
@@ -30,13 +34,12 @@
   const horizHalfScale = horizontalScale;
 
   const stdlinewidths = 7;
-  const textVOffset = 0;
+  const textVOffset = 0 + verticalOffset;
   const textHOffset = 0;
   const numLuts = 11;
   const lut = new Lut("rainbow", numLuts);
 
-  const ymin = 0;
-  const ymax = 150;
+  const [ymin, ymax] = chooseAxisLimits(ysraw);
   const ys = scaleArray(ysraw, verticalScale, ymin, ymax); // only scale y's for now, later willl need to scale x's too
 
   // convert xs and ys to Vector2's
@@ -111,90 +114,120 @@
 </script>
 
 <!--  ===============  Profile Outline of Curve =============  -->
-<T.Group position={[0, verticalOffset, 0]}>
-  {#if showMainShadowScreen}
-    <T.Mesh position.z={-20} receiveShadow>
-      <T.PlaneGeometry args={[80, 72]} />
-      <T.MeshStandardMaterial color="grey" />
+{#if showLineSolidColor}
+  <Line2 points={v3profile} material={linemat} />
+  <Line2 points={v3profile} material={linemat} rotation={l2rotation} />
+{/if}
+
+{#if showLineMultiColor}
+  {#each vmulti as v, i}
+    <Line2 points={v} material={mats[i]} />
+    <Line2 points={v} material={mats[i]} rotation={l2rotation} />
+  {/each}
+{/if}
+
+<!-- full contour shape -->
+{#if showImage}
+  {#if image}
+    <T.Mesh
+      geometry={image}
+      position={[0, verticalOffset, 0]}
+      rotation={[0, 0, 0]}
+      castShadow={true}
+      let:ref
+    >
+      <T.MeshPhongMaterial
+        vertexColors={true}
+        opacity={wfeopacity}
+        transparent
+        side={2}
+      />
     </T.Mesh>
   {/if}
+{/if}
 
-  {#if showGrid}
-    <BackgroundGrids
-      horizontalSize={horizontalScale * 2}
-      verticalSize={verticalScale}
-    />
-  {/if}
+{#if showMainShadowScreen}
+  <T.Mesh position.z={-20} receiveShadow>
+    <T.PlaneGeometry args={[80, 72]} />
+    <T.MeshStandardMaterial color="grey" />
+  </T.Mesh>
+{/if}
 
-  <!-- show ymax -->
-  <Text
-    text={ymaxdisplay}
-    color={fontColor}
-    {fontSize}
-    anchorX={"right"}
-    anchorY={"middle"}
-    position={{
-      x: -horizHalfScale - 1,
-      y: verticalScale + textVOffset,
-      z: -horizHalfScale,
-    }}
-    rotation={{ x: 0, y: 0, z: 0 }}
-    castShadow
+{#if showGrid}
+  <BackgroundGrids
+    horizontalSize={horizontalScale * 2}
+    verticalSize={verticalScale}
   />
+{/if}
 
-  <!-- show ymin -->
-  <Text
-    text={ymindisplay}
-    color={fontColor}
-    {fontSize}
-    anchorX={"right"}
-    anchorY={"middle"}
-    position={{ x: -horizHalfScale - 1, y: textVOffset, z: -horizHalfScale }}
-    rotation={{ x: 0, y: 0, z: 0 }}
-    castShadow
-  />
+<!-- show ymax -->
+<Text
+  text={ymaxdisplay}
+  color={fontColor}
+  {fontSize}
+  anchorX={"right"}
+  anchorY={"middle"}
+  position={{
+    x: -horizHalfScale - 1,
+    y: verticalScale + textVOffset,
+    z: -horizHalfScale,
+  }}
+  rotation={{ x: 0, y: 0, z: 0 }}
+  castShadow
+/>
 
-  <!-- show xmax -->
-  <Text
-    text={xmaxdisplay}
-    color={fontColor}
-    {fontSize}
-    anchorX={"left"}
-    anchorY={"middle"}
-    position={{
-      x: -horizHalfScale,
-      y: textVOffset,
-      z: horizHalfScale + textHOffset,
-    }}
-    rotation={{ x: 0, y: -Math.PI / 2, z: 0 }}
-    castShadow
-  />
+<!-- show ymin -->
+<Text
+  text={ymindisplay}
+  color={fontColor}
+  {fontSize}
+  anchorX={"right"}
+  anchorY={"middle"}
+  position={{ x: -horizHalfScale - 1, y: textVOffset, z: -horizHalfScale }}
+  rotation={{ x: 0, y: 0, z: 0 }}
+  castShadow
+/>
 
-  <!-- show xmin -->
-  <Text
-    text={" -" + xmaxdisplay}
-    color={fontColor}
-    {fontSize}
-    anchorX={"left"}
-    anchorY={"middle"}
-    position={{
-      x: horizHalfScale,
-      y: textVOffset,
-      z: horizHalfScale + textHOffset,
-    }}
-    rotation={{ x: 0, y: -Math.PI / 2, z: 0 }}
-    castShadow
-  />
+<!-- show xmax -->
+<Text
+  text={xmaxdisplay}
+  color={fontColor}
+  {fontSize}
+  anchorX={"left"}
+  anchorY={"middle"}
+  position={{
+    x: -horizHalfScale,
+    y: textVOffset,
+    z: horizHalfScale + textHOffset,
+  }}
+  rotation={{ x: 0, y: -Math.PI / 2, z: 0 }}
+  castShadow
+/>
 
-  <!-- show x zero -->
-  <Text
-    text={"0.0 mm"}
-    color={fontColor}
-    {fontSize}
-    anchorX={"left"}
-    anchorY={"middle"}
-    position={{ x: 0, y: textVOffset, z: horizHalfScale + textHOffset }}
-    rotation={{ x: 0, y: -Math.PI / 2, z: 0 }}
-    castShadow
-  />
-</T.Group>
+<!-- show xmin -->
+<Text
+  text={" -" + xmaxdisplay}
+  color={fontColor}
+  {fontSize}
+  anchorX={"left"}
+  anchorY={"middle"}
+  position={{
+    x: horizHalfScale,
+    y: textVOffset,
+    z: horizHalfScale + textHOffset,
+  }}
+  rotation={{ x: 0, y: -Math.PI / 2, z: 0 }}
+  castShadow
+/>
+
+<!-- show x zero -->
+<Text
+  text={"0.0 mm"}
+  color={fontColor}
+  {fontSize}
+  anchorX={"left"}
+  anchorY={"middle"}
+  position={{ x: 0, y: textVOffset, z: horizHalfScale + textHOffset }}
+  rotation={{ x: 0, y: -Math.PI / 2, z: 0 }}
+  castShadow
+/>

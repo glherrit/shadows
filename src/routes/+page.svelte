@@ -3,6 +3,7 @@
   import Scene1 from "../threlte/Scene1.svelte";
   import Scene2 from "../threlte/Scene2.svelte";
   import Scene3 from "../threlte/Scene3.svelte";
+  import Scene4 from "../threlte/Scene4.svelte";
 
   let value = 0;
   console.log("value", value);
@@ -16,19 +17,16 @@
 <div class="flex flex-nowrap gap-12 justify-center space-y-10">
   <h1 class="text-3xl font-bold underline">Shadow Animation!</h1>
   <li>
-    <button class="btn btn-blue" on:click={() => setValue(1)}>
-      Scene 1'
-    </button>
+    <button class="btn btn-blue" on:click={() => setValue(1)}> Scene 1 </button>
   </li>
   <li>
-    <button class="btn btn-blue" on:click={() => setValue(2)}>
-      Scene 2'
-    </button>
+    <button class="btn btn-blue" on:click={() => setValue(2)}> Scene 2 </button>
   </li>
   <li>
-    <button class="btn btn-blue" on:click={() => setValue(3)}>
-      Scene 3'
-    </button>
+    <button class="btn btn-blue" on:click={() => setValue(3)}> Scene 3 </button>
+  </li>
+  <li>
+    <button class="btn btn-blue" on:click={() => setValue(4)}> Scene 4 </button>
   </li>
 </div>
 <br />
@@ -41,6 +39,8 @@
       <Scene2 />
     {:else if value === 3}
       <Scene3 />
+    {:else if value === 4}
+      <Scene4 />
     {/if}
   </Canvas>
 </div>
