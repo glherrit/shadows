@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { T, useFrame } from "@threlte/core";
+  import { T, useFrame, useTexture } from "@threlte/core";
   import * as THREE from "three";
   import { LatheGeometry } from "three";
   import Camera1New from "./Camera1New.svelte";
@@ -78,7 +78,7 @@
   let onoff = false;
   const { start, stop, started } = useFrame(({ clock }) => {
     if (onoff) {
-      rotation += 0.01;
+      rotation += 0.02;
       //console.log("rotate", clock.getDelta());
     } else {
       //console.log("no rotation", clock.getDelta());
@@ -114,6 +114,8 @@
   lensshape.forEach((pt) => {
     ptsvector.push(new THREE.Vector2(pt[0], pt[1]));
   });
+
+  const lktexture = useTexture("lenskitcircle.png");
 </script>
 
 <Camera1New />
@@ -127,7 +129,7 @@
   castShadow
   position={[0, 30, 0]}
   rotation={[rotation, 0, rotation]}
-  geometry={new LatheGeometry(ptsvector, 101, 0, Math.PI * 2)}
+  geometry={new LatheGeometry(ptsvector, 201, 0, Math.PI * 2)}
   material={new THREE.MeshPhongMaterial({
     color: "red",
     transparent: true,
@@ -138,9 +140,9 @@
 />
 
 <!-- Floor -->
-<T.Mesh position.z={0} rotation.x={-Math.PI / 2} receiveShadow>
+<T.Mesh position.z={0} rotation={[-Math.PI / 2, 0, -Math.PI / 2]} receiveShadow>
   <T.CircleGeometry args={[40, 128]} />
-  <T.MeshPhongMaterial color="lightgrey" />
+  <T.MeshPhongMaterial map={lktexture} />
 </T.Mesh>
 
 <HTML
