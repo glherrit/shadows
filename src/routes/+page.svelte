@@ -4,6 +4,7 @@
   import Scene2 from "../threlte/Scene2.svelte";
   import Scene3 from "../threlte/Scene3.svelte";
   import Scene4 from "../threlte/Scene4.svelte";
+  import Scene5 from "../threlte/Scene5.svelte";
 
   let value = 0;
   console.log("value", value);
@@ -28,6 +29,9 @@
   <li>
     <button class="btn btn-blue" on:click={() => setValue(4)}> Scene 4 </button>
   </li>
+  <li>
+    <button class="btn btn-blue" on:click={() => setValue(5)}> Scene 5 </button>
+  </li>
 </div>
 <br />
 
@@ -41,6 +45,8 @@
       <Scene3 />
     {:else if value === 4}
       <Scene4 />
+    {:else if value === 5}
+      <Scene5 />
     {/if}
   </Canvas>
 </div>

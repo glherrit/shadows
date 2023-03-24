@@ -79,9 +79,9 @@
   const { start, stop, started } = useFrame(({ clock }) => {
     if (onoff) {
       rotation += 0.01;
-      console.log("rotate", clock.getDelta());
+      //console.log("rotate", clock.getDelta());
     } else {
-      console.log("no rotation", clock.getDelta());
+      //console.log("no rotation", clock.getDelta());
     }
     onoff = !onoff;
   });
