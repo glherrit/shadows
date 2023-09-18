@@ -1,9 +1,7 @@
-import { ClientResponseError } from 'pocketbase'
-import { format } from 'svelte-i18n'
 import { get } from 'svelte/store'
 
 // mimic svelte syntax
-const $_ = get(format)
+const $_ = 'temp'
 
 type ErrorWithMessage = {
   message: string
@@ -41,7 +39,7 @@ export function getFormString(form: FormData, key: string, orValue: string | nul
 }
 
 function getOneTranslatedError(forKey: string | undefined | null, orValue: string | null = null) {
-  return forKey ? $_(forKey, { default: orValue || forKey }) : undefined
+  return undefined
 }
 
 export function getTranslatedError(
@@ -56,24 +54,5 @@ export function getTranslatedError(
 }
 
 export function getFieldErrorsFromPocketbase(err: unknown) {
-  if (err instanceof ClientResponseError && err.data.code === 400) {
-    console.debug(`src/lib/utils/error.ts(72): err.data.data :>> `, err.data.data)
-    // transform:
-    // . username: {
-    // .   code: 'validation_length_out_of_range',
-    // .   message: 'The length must be between 4 and 100.'
-    // . }
-    // into: username: ["errors.username.validation_length_out_of_range"]
-    const fieldErrorData = (err.data.data || {}) as Record<
-      string,
-      { code: string; message: string }
-    >
-    return Object.keys(fieldErrorData).reduce(
-      (acc, key) => ({
-        ...acc,
-        [key]: [`errors.${key}.${fieldErrorData[key].code}`],
-      }),
-      {} as Record<string, string[]>
-    )
-  }
+  return undefined;
 }

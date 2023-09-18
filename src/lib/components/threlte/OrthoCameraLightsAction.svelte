@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { PAN_SPEED, ROTATE_SPEED, ZOOM_SPEED } from '$src/lib/constants'
+  import { PAN_SPEED, ROTATE_SPEED, ZOOM_SPEED } from '$lib/constants'
   import { OrbitControls, T } from '@threlte/core'
 
   export let zoomSpeed = ZOOM_SPEED
