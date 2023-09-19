@@ -47,9 +47,9 @@
   const source = makeCollimatedFlattop(lens.surf1.ap * 0.45, wlen);
   //console.log(lens, source);
 
-  let conicend = -0.598611;
-  let a4end = 2.909919e-7;
-  let a6end = -2.13825e-10;
+  let conicend = -0.59936;
+  let a4end = 3.176e-7;
+  let a6end = -2.003e-10;
 
   let numsteps = 50;
 
@@ -70,18 +70,26 @@
   const numLuts = 11;
   const lut = new Lut("rainbow", numLuts);
   const l2rotation = { x: 0, y: -Math.PI / 2, z: 0 };
-
-  const { start, stop, started } = useFrame(() => {
-    if (ntrys < 2) {
-      lens.surf1.k = -conicend + cstep * step;
-      lens.surf1.asphericTerms.coeffs[0] = -a4end + a4step * step;
-      lens.surf1.asphericTerms.coeffs[1] = -a6end + a6step * step;
-      step += 1;
-      if (step > numsteps * 2) {
-        step = 0;
-        ntrys += 0;
+  let x = 0;
+  let isPaused = false;
+  const { start, stop, started } = useFrame(({ clock }) => {
+    if (isPaused) {
+      x += clock.getDelta();
+      if (x > 0.002) {
+        x = 0;
+        isPaused = false;
       }
-    }
+    } else {
+      lens.surf1.k = cstep * step;
+      lens.surf1.asphericTerms.coeffs[0] = a4step * step;
+      lens.surf1.asphericTerms.coeffs[1] = a6step * step;
+      step += 1;
+      if (step > numsteps) {
+        step = 0;
+        x = 0;
+        isPaused = true;
+      }
+  }
   });
 
   const toggleUseFrame = () => {
@@ -236,8 +244,8 @@
 
 <!-- Lens Section -->
 <T.Group
-  position={[0, verticalOffset, -60]}
-  rotation={[0, 0.4, 0]}
+  position={[0, 30, -90]}
+  rotation={[0, 0, 0]}
   visible={true}
 >
   <T.Mesh
@@ -266,52 +274,23 @@
   />
 </T.Group>
 
-<!-- wavefront background -->
-<T.Group position={[0, 0, wfeOffsetZ]} rotation={[0, -0.9, 0]} visible={true}>
+<!-- Thru Focus Plots background -->
+<T.Group scale={1} position={[0, 0, wfeOffsetZ]} rotation={[0, 0, 0]} visible={true}>
   <ThruFocusPlot
     lens={lens}
     source={source}
   />
 </T.Group>
 
-<!-- shows the contour profile lines -->
-<T.Group position={[0, 0, wfeOffsetZ]} rotation={[0, -0.9, 0]} visible={true}>
-  {#if showLineMultiColor}
-    {#each raygroup[5] as v, i}
-      <Line2 points={v} material={raygroup[6][i]} />
-      <Line2 points={v} material={raygroup[6][i]} rotation={l2rotation} />
-    {/each}
-  {/if}
-</T.Group>
-
-<!-- full contour shape -->
-<T.Mesh
-  geometry={raygroup[4]}
-  position={[0, verticalOffset, wfeOffsetZ]}
-  rotation={[0, 0, 0]}
-  castShadow={true}
-  let:ref
->
-  <T.MeshPhongMaterial vertexColors={true} opacity={0.8} transparent side={2} />
-</T.Mesh>
-
-<!-- WFE Title -->
+<!-- TF Title -->
 <Text
-  text={"WFE  " + raygroup[3] + " waves"}
+  text={"Thru Focus Plot"}
   color={"white"}
   fontSize={3}
   anchorX={"center"}
   anchorY={"middle"}
-  position={{
-    x: 0,
-    y: verticalOffset + verticalScale + 8,
-    z: wfeOffsetZ / 1.9 + 10,
-  }}
-  rotation={{
-    x: 0,
-    y: -1.5,
-    z: 0,
-  }}
+  position={{x: 0, y: 10, z: 0 }}
+  rotation={{x: 0, y: -1.5, z: 0}}
 />
 
 <!-- Ray Trace Title -->
@@ -321,20 +300,12 @@
   fontSize={3}
   anchorX={"center"}
   anchorY={"middle"}
-  position={{
-    x: 0,
-    y: verticalOffset + verticalScale + 8,
-    z: -40,
-  }}
-  rotation={{
-    x: 0,
-    y: -1.5,
-    z: 0,
-  }}
+  position={{x: 0, y: 50, z: -70 }}
+  rotation={{x: 0, y: -1.5, z: 0}}
 />
 
 <HTML
-  position={{ x: 0, y: 30, z: -10 }}
+  position={{ x: 0, y: 30, z: 0 }}
   rotation={{ x: 0, y: -1.6, z: 0 }}
   scale={7}
   transform

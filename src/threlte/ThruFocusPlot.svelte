@@ -22,13 +22,13 @@
   const annotationFontSize = 2
 
   // somewhat tortureous way of defining number of spots and spaceings and begining position
-  const stepSize = 0.25
+  const stepSize = 0.50
   const numSpots = 9
   const begin = -((numSpots - 1) / 2) * stepSize
   const defocusValues = Array.from({ length: numSpots }, (_, i) => begin + i * stepSize)
   //console.log('🚀 ~ defocusValues', defocusValues)
 
-  const xyScale = 50 // scale for spot diagram
+  const xyScale = 10 // scale for spot diagram
   const ZaxisLength = 50
   const ZaxisExtenstion = 5
   const zScale = (2 * ZaxisLength) / (numSpots - 1) / stepSize
