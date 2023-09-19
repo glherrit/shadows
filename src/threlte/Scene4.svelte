@@ -50,7 +50,7 @@
   let a4end = 2.909919e-7;
   let a6end = -2.13825e-10;
 
-  let numsteps = 50;
+  let numsteps = 100;
 
   let cstep = conicend / numsteps;
   let a4step = a4end / numsteps;
@@ -69,18 +69,27 @@
   const numLuts = 11;
   const lut = new Lut("rainbow", numLuts);
   const l2rotation = { x: 0, y: -Math.PI / 2, z: 0 };
-
-  const { start, stop, started } = useFrame(() => {
-    if (ntrys < 2) {
-      lens.surf1.k = -conicend + cstep * step;
-      lens.surf1.asphericTerms.coeffs[0] = -a4end + a4step * step;
-      lens.surf1.asphericTerms.coeffs[1] = -a6end + a6step * step;
-      step += 1;
-      if (step > numsteps * 2) {
-        step = 0;
-        ntrys += 0;
+  let x = 0;
+  let isPaused = false;
+  const { start, stop, started } = useFrame(({ clock }) => {
+    if (isPaused) {
+      x += clock.getDelta();
+      if (x > 0.002) {
+        x = 0;
+        isPaused = false;
       }
-    }
+    } else {
+      lens.surf1.k = cstep * step;
+      lens.surf1.asphericTerms.coeffs[0] = a4step * step;
+      lens.surf1.asphericTerms.coeffs[1] = a6step * step;
+      step += 1;
+
+      if (step > numsteps) {
+        step = 0;
+        x = 0;
+        isPaused = true;
+      }
+  }
   });
 
   const toggleUseFrame = () => {
@@ -155,7 +164,7 @@
     //let p = peak value in ys
     let pk = Math.max(...ysraw).toFixed(1);
 
-    const ys = scaleArray(ysraw, 10, 0, 100);
+    const ys = scaleArray(ysraw, 25, 0, 100);
     const [xmin, xmax] = chooseAxisLimits(xsraw);
     const xs = scaleArray(xsraw, horizontalScale / 2, xmin, xmax);
 

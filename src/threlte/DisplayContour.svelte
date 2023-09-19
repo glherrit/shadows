@@ -36,7 +36,7 @@
   const lut = new Lut("rainbow", numLuts);
 
   const ymin = 0;
-  const ymax = 150;
+  const ymax = 60;
   const ys = scaleArray(ysraw, verticalScale, ymin, ymax); // only scale y's for now, later willl need to scale x's too
 
   // convert xs and ys to Vector2's
@@ -126,7 +126,7 @@
     />
   {/if}
 
-  <!-- show ymax -->
+  <!-- show ymax  label -->
   <Text
     text={ymaxdisplay}
     color={fontColor}
@@ -142,7 +142,7 @@
     castShadow
   />
 
-  <!-- show ymin -->
+  <!-- show ymin label -->
   <Text
     text={ymindisplay}
     color={fontColor}
@@ -154,7 +154,7 @@
     castShadow
   />
 
-  <!-- show xmax -->
+  <!-- show xmax  label -->
   <Text
     text={xmaxdisplay}
     color={fontColor}
@@ -170,7 +170,7 @@
     castShadow
   />
 
-  <!-- show xmin -->
+  <!-- show xmin label  -->
   <Text
     text={" -" + xmaxdisplay}
     color={fontColor}
@@ -186,7 +186,7 @@
     castShadow
   />
 
-  <!-- show x zero -->
+  <!-- show x zero  label  -->
   <Text
     text={"0.0 mm"}
     color={fontColor}

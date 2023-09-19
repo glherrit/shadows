@@ -65,7 +65,6 @@
   const horizontalScale = 20;
   const verticalScale = 15;
   const verticalOffset = -10;
-  const wfeOffsetZ = 20;
 
   const numLuts = 11;
   const lut = new Lut("rainbow", numLuts);
@@ -75,7 +74,7 @@
   const { start, stop, started } = useFrame(({ clock }) => {
     if (isPaused) {
       x += clock.getDelta();
-      if (x > 0.002) {
+      if (x > 0.001) {
         x = 0;
         isPaused = false;
       }
@@ -243,69 +242,74 @@
 <T.AmbientLight intensity={0.2} />
 
 <!-- Lens Section -->
-<T.Group
-  position={[0, 30, -90]}
-  rotation={[0, 0, 0]}
-  visible={true}
->
-  <T.Mesh
-    geometry={genSolidLens(lens, 51, 51)}
+<T.Group position={[0, 15, -75]}>
+  <T.Group
     position={[0, 0, 0]}
-    rotation={[Math.PI / 2, 0, 0]}
-    let:ref
+    rotation={[0, 0, 0]}
+    visible={true}
   >
-    <T.MeshPhongMaterial
-      color={"orange"}
-      opacity={0.5}
-      shininess={100}
-      reflectivity={1}
+    <T.Mesh
+      geometry={genSolidLens(lens, 51, 51)}
+      position={[0, 0, 0]}
+      rotation={[Math.PI / 2, 0, 0]}
+      let:ref
+    >
+      <T.MeshPhongMaterial
+        color={"orange"}
+        opacity={0.5}
+        shininess={100}
+        reflectivity={1}
+      />
+    </T.Mesh>
+
+    {#each raygroup[0] as ray}
+      <T.Line geometry={ray.geometry} material={ray.material} />
+    {/each}
+
+    <!-- Add image plane helper Grid -->
+    <T.Mesh position.z={lens.ct + lens.BFL(wlen)} receiveShadow>
+      <T.PlaneGeometry args={[10, 10]} />
+      <T.MeshStandardMaterial color="green" side={DoubleSide} />
+    </T.Mesh>
     />
-  </T.Mesh>
+  </T.Group>
 
-  {#each raygroup[0] as ray}
-    <T.Line geometry={ray.geometry} material={ray.material} />
-  {/each}
-
-  <!-- Add image plane helper Grid -->
-  <T.Mesh position.z={lens.ct + lens.BFL(wlen)} receiveShadow>
-    <T.PlaneGeometry args={[10, 10]} />
-    <T.MeshStandardMaterial color="green" side={DoubleSide} />
-  </T.Mesh>
+  <!-- Ray Trace Title -->
+  <Text
+    text={"Ray Trace"}
+    color={"white"}
+    fontSize={3}
+    anchorX={"center"}
+    anchorY={"middle"}
+    position={{x: 0, y: 15, z: 20 }}
+    rotation={{x: 0, y: -2.1, z: 0}}
   />
 </T.Group>
 
 <!-- Thru Focus Plots background -->
-<T.Group scale={1} position={[0, 0, wfeOffsetZ]} rotation={[0, 0, 0]} visible={true}>
-  <ThruFocusPlot
-    lens={lens}
-    source={source}
+<T.Group position={[0, 0, 15]}>
+  <T.Group scale={1} position={[0, -10, 5]} rotation={[0, 0, 0]} visible={true}>
+    <ThruFocusPlot
+      lens={lens}
+      source={source}
+    />
+  </T.Group>
+
+  <!-- TF Title -->
+  <Text
+    text={"Thru Focus Plot"}
+    color={"white"}
+    fontSize={3}
+    anchorX={"center"}
+    anchorY={"middle"}
+    position={{x: 0, y: 0, z: 0 }}
+    rotation={{x: 0, y: -2.1, z: 0}}
   />
 </T.Group>
 
-<!-- TF Title -->
-<Text
-  text={"Thru Focus Plot"}
-  color={"white"}
-  fontSize={3}
-  anchorX={"center"}
-  anchorY={"middle"}
-  position={{x: 0, y: 10, z: 0 }}
-  rotation={{x: 0, y: -1.5, z: 0}}
-/>
-
-<!-- Ray Trace Title -->
-<Text
-  text={"Ray Trace"}
-  color={"white"}
-  fontSize={3}
-  anchorX={"center"}
-  anchorY={"middle"}
-  position={{x: 0, y: 50, z: -70 }}
-  rotation={{x: 0, y: -1.5, z: 0}}
-/>
 
 <HTML
-  position={{ x: 0, y: 30, z: 0 }}
+  position={{ x: 0, y: 40, z: 0 }}
   rotation={{ x: 0, y: -1.6, z: 0 }}
   scale={7}
   transform
