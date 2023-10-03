@@ -16,9 +16,10 @@
     entrancePupilHalfDiameter,
     makeCollimatedFlattop,
     type LightSource,
+    makeExtendedSorce,
   } from "$lib/lightSource";
   import { genSolidLens } from "$lib/ThreeGutils";
-  import { generateCircleGrid, trace3DRayPath } from "$lib/raytrace";
+  import { generateCircleGrid, generateFibonacciRays, trace3DRayPath } from "$lib/raytrace";
   import type { Vector3D } from "$lib/vector";
   import { HTML } from "@threlte/extras";
   import DisplayContour from "./DisplayContour.svelte";
@@ -44,7 +45,8 @@
   );
   const wlen = 1.07;
   const source = makeCollimatedFlattop(lens.surf1.ap * 0.45, wlen);
-  //console.log(lens, source);
+  const extSource = makeExtendedSorce(lens.surf1.ap * 0.45, wlen, 0.1);
+  //console.log(lens, source);lens.surf1.ap * 0.45
 
   let conicend = -0.598611;
   let a4end = 2.909919e-7;
@@ -57,7 +59,7 @@
   let a6step = a6end / numsteps;
 
   let rotation = 0;
-  let numberofrays = 11;
+  let numberofrays = 501;
   let step = 0;
   let ntrys = 0;
 
@@ -71,6 +73,8 @@
   const l2rotation = { x: 0, y: -Math.PI / 2, z: 0 };
   let x = 0;
   let isPaused = false;
+  let raycount = 101;
+
   const { start, stop, started } = useFrame(({ clock }) => {
     if (isPaused) {
       x += clock.getDelta();
@@ -83,6 +87,11 @@
       lens.surf1.asphericTerms.coeffs[0] = a4step * step;
       lens.surf1.asphericTerms.coeffs[1] = a6step * step;
       step += 1;
+      raycount += 100;
+      if (raycount > 1001) {
+        raycount = 101;
+      }
+      console.log("raycount", raycount);
 
       if (step > numsteps) {
         step = 0;
@@ -129,12 +138,16 @@
     surf2pts = [];
     surfimgpts = [];
     //const crays = generateCollimatedRayBundle(halfap, 1, rayInitialZPosition)
-    const crays = generateCircleGrid(
+    //const crays = generateCircleGrid(
+    //  entrancePupilHalfDiameter(source),
+    //  numrays,
+    //  -5,
+    //  true
+    //);
+    const crays = generateFibonacciRays(
       entrancePupilHalfDiameter(source),
       numrays,
-      -5,
-      true
-    );
+      -5);
     crays.forEach((ray) => {
       let ps = trace3DRayPath(ray.pVector, ray.eDir, lens, source, refocus);
       surf1pts.push(new Vector3(ps[1].x, ps[1].y, ps[1].z));
@@ -227,7 +240,8 @@
     return pts3;
   }
 
-  $: raygroup = addRays(lens, source, 0, numberofrays);
+
+$: raygroup = addRays(lens, extSource, 0, raycount);
 
   const showLineMultiColor = true;
 </script>

@@ -64,7 +64,25 @@
   const horizontalScale = 20;
   const verticalScale = 15;
   const verticalOffset = -10;
-  const wfeOffsetZ = 20;
+ 
+  const showLineMultiColor = true;
+
+  const sceneZoom = 8;
+
+  const lensposition = [0, 15, -20]
+  const lensrotation = [0, 0.6, 0]
+  const lenstitlepos = [0, 15, 25]
+  const lenstitlerot = [0, -Math.PI / 2 - 0.6, 0]
+  //position={{x: 0, y: 15, z: 25,}}
+  //rotation={{ x: 0,y: -2,z: 0,}}
+
+  //rotation.y={-Math.PI/4} position.y={-10}
+  const plotposition = [0, -25, 10]
+  const plotrotation = [0, -Math.PI/4, 0]
+  const plottitleposi = [0, 0, -40]
+  const plottitlerot = [0, -Math.PI/4, 0]
+  //position={{x: 0, y: 22, z: 0, }}
+  //rotation={{x: 0, y: -Math.PI/4, z: 0,}}
 
   const numLuts = 11;
   const lut = new Lut("rainbow", numLuts);
@@ -89,7 +107,7 @@
         x = 0;
         isPaused = true;
       }
-  }
+    }
   });
 
   const toggleUseFrame = () => {
@@ -229,12 +247,12 @@
 
   $: raygroup = addRays(lens, source, 0, numberofrays);
 
-  const showLineMultiColor = true;
+
 </script>
 
 <!-- Camera Section -->
 <T.Group rotation={[0, 0, 0]}>
-  <T.OrthographicCamera makeDefault position={[-50, 15, 0]} zoom={12}>
+  <T.OrthographicCamera makeDefault position={[-50, 15, 0]} zoom={sceneZoom}>
     <OrbitControls enableRotate enableZoom enableDamping dampingFactor={0.03} />
     <T.DirectionalLight position={[-100, 0, 0]} intensity={1.0} />
     <T.DirectionalLight position={[0, 0, -100]} intensity={1.0} />
@@ -244,8 +262,8 @@
 
 <!-- Lens Section -->
 <T.Group
-  position={[0, verticalOffset, -60]}
-  rotation={[0, 0.4, 0]}
+  position={lensposition}
+  rotation={lensrotation}
   visible={true}
 >
   <T.Mesh
@@ -272,21 +290,33 @@
     <T.MeshStandardMaterial color="green" side={DoubleSide} />
   </T.Mesh>
   />
+
+    <!-- Ray Trace Title -->
+    <T.Group position={lenstitlepos} rotation={lenstitlerot}>
+      <Text
+        text={"Ray Trace"}
+        color={"white"}
+        fontSize={3}
+        anchorX={"center"}
+        anchorY={"middle"}
+
+      />
+  </T.Group>
 </T.Group>
 
 <!-- wavefront background -->
-<T.Group position={[0, 0, wfeOffsetZ]} rotation={[0, -0.9, 0]} visible={true}>
+<T.Group  position={plotposition} rotation={plotrotation}>
   <DisplayContour
     xsraw={raygroup[1]}
     ysraw={raygroup[2]}
     horizontalScale={horizontalScale / 2}
     {verticalScale}
-    {verticalOffset}
+    verticalOffset={0}
   />
-</T.Group>
 
 <!-- shows the contour profile lines -->
-<T.Group position={[0, 0, wfeOffsetZ]} rotation={[0, -0.9, 0]} visible={true}>
+
+  <T.Group  position.y={-verticalOffset}>
   {#if showLineMultiColor}
     {#each raygroup[5] as v, i}
       <Line2 points={v} material={raygroup[6][i]} />
@@ -294,59 +324,34 @@
     {/each}
   {/if}
 </T.Group>
-
 <!-- full contour shape -->
-<T.Mesh
-  geometry={raygroup[4]}
-  position={[0, verticalOffset, wfeOffsetZ]}
-  rotation={[0, 0, 0]}
-  castShadow={true}
-  let:ref
->
-  <T.MeshPhongMaterial vertexColors={true} opacity={0.8} transparent side={2} />
-</T.Mesh>
+  <T.Mesh
+    geometry={raygroup[4]}
+    position={[0, 0, 0]}
+    castShadow={true}
+    let:ref
+  >
+    <T.MeshPhongMaterial vertexColors={true} opacity={0.8} transparent side={2} />
+  </T.Mesh>
 
-<!-- WFE Title -->
-<Text
-  text={"WFE  " + raygroup[3] + " waves"}
-  color={"white"}
-  fontSize={3}
-  anchorX={"center"}
-  anchorY={"middle"}
-  position={{
-    x: 0,
-    y: verticalOffset + verticalScale + 8,
-    z: wfeOffsetZ / 1.9 + 10,
-  }}
-  rotation={{
-    x: 0,
-    y: -1.5,
-    z: 0,
-  }}
-/>
+  <!-- WFE Title -->
+    <T.Group  position={plottitleposi} rotation={plottitlerot}>
+      <Text
+        text={"WFE\n" + raygroup[3] + "\nwaves"}
+        color={"white"}
+        fontSize={3}
+        anchorX={"center"}
+        anchorY={"middle"}
 
-<!-- Ray Trace Title -->
-<Text
-  text={"Ray Trace"}
-  color={"white"}
-  fontSize={3}
-  anchorX={"center"}
-  anchorY={"middle"}
-  position={{
-    x: 0,
-    y: verticalOffset + verticalScale + 8,
-    z: -40,
-  }}
-  rotation={{
-    x: 0,
-    y: -1.5,
-    z: 0,
-  }}
-/>
+      />
+  </T.Group>
+</T.Group>
+
+
 
 <HTML
-  position={{ x: 0, y: 30, z: -10 }}
-  rotation={{ x: 0, y: -1.6, z: 0 }}
+  position={{ x: 0, y: 50, z: 0 }}
+  rotation={{ x: 0, y: -Math.PI/2, z: 0 }}
   scale={7}
   transform
 >

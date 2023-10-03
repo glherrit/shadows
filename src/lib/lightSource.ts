@@ -43,6 +43,15 @@ export function makeCollimatedFlattop(halfDiameter: number, wavelengths: number 
   } as CollimatedFlattop
 }
 
+export function makeExtendedSorce(halfDiameter: number, wavelengths: number | number[], NA: number) {
+  return {
+    kind: LightSourceKind.ExtendedSource,
+    halfDiameter,
+    wavelengths: Array.isArray(wavelengths) ? wavelengths : [wavelengths],
+    NA,
+  } as ExtendedSource
+}
+
 export function entrancePupilHalfDiameter(source: LightSource) {
   switch (source.kind) {
     case LightSourceKind.CollimatedFlattop:
