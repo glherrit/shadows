@@ -140,17 +140,7 @@
     surf1pts = [];
     surf2pts = [];
     surfimgpts = [];
-    //const crays = generateCollimatedRayBundle(halfap, 1, rayInitialZPosition)
-    //const crays = generateCircleGrid(
-    //  entrancePupilHalfDiameter(source),
-    //  numrays,
-    //  -5,
-    //  true
-    //);
-    //const crays2 = generateFibonacciRays(
-    //  entrancePupilHalfDiameter(source),
-    //  numrays,
-    //  -5);
+
     const crays = generateRandomRays2(10001, 5, entrancePupilHalfDiameter(source), 0.001);
     crays.forEach((ray) => {
       let ps = trace3DRayPath(ray.pVector, ray.eDir, lens, source, refocus);
@@ -233,39 +223,12 @@
       );
     }
 
-
-
-
-    /*
-    let histo = extenedSrcHisto(surfimgpts, 0.1, 2, 0.005);
-    const height = histo.length;
-    console.log("🚀 ~ height:", height)
-    const width = histo.length > 0 ? histo[0].length : 0; 
-    const geometry = new PlaneGeometry(width, height, width - 1, height - 1);
-    console.log("🚀 ~ height:", height)
-    console.log("🚀 ~ height:", height)
-    const material = new MeshPhongMaterial({ color: 0x00ff00, side: DoubleSide });
-
-    for (let i = 0; i < width; i++) {
-      for (let j = 0; j < height; j++) {
-        console.log("🚀 ~ height:", height)
-        const index = i + j * width;
-        geometry.attributes.position.setZ(index, histo[j][i] );
-      }
-    }
-
-    */
-   // create a buffer geometry
+    // create a buffer geometry
     let histo = extenedSrcHisto(surfimgpts, 0.1, 2, 0.004);
     const height = histo.length;
-    console.log("🚀 ~ height:", height)
     const width = histo.length > 0 ? histo[0].length : 0; 
-    console.log("🚀 ~ width:", width)
     const n = height * width
-    console.log("🚀 ~ n:", n)
-    console.log("🚀 ~ height:", height)
     const maxZ = findMaxValue(histo);
-    console.log("🚀 ~ maxZ:", maxZ)
 
     //convert histo to points
     const points = [];
@@ -397,7 +360,7 @@
 
 <!-- Camera Section -->
 <T.Group rotation={[0, 0, 0]}>
-  <T.OrthographicCamera makeDefault position={[-50, 15, 0]} zoom={12}>
+  <T.OrthographicCamera makeDefault position={[-80, 10, 0]} zoom={12}>
     <OrbitControls enableRotate enableZoom enableDamping dampingFactor={0.03} />
     <T.DirectionalLight position={[-100, 0, 0]} intensity={1.0} />
     <T.DirectionalLight position={[0, 0, -100]} intensity={1.0} />
@@ -405,59 +368,6 @@
 </T.Group>
 <T.AmbientLight intensity={0.2} />
 
-<!-- Lens Section -->
-<T.Group
-  position={[0, verticalOffset + 10, -30]}
-  rotation={[0, 1.1, 0]}
-  visible={false}
->
-  <T.Mesh
-    geometry={genSolidLens(lens, 51, 51)}
-    position={[0, 0, 0]}
-    rotation={[Math.PI / 2, 0, 0]}
-    let:ref
-  >
-    <T.MeshPhongMaterial
-      color={"orange"}
-      opacity={0.5}
-      shininess={100}
-      reflectivity={1}
-    />
-  </T.Mesh>
-
-  {#each raygroup[0] as ray}
-    <T.Line geometry={ray.geometry} material={ray.material} />
-  {/each}
-
-  <!-- Add image plane helper Grid -->
-  <T.Mesh position.z={lens.ct + lens.BFL(wlen)} receiveShadow>
-    <T.PlaneGeometry args={[10, 10]} />
-    <T.MeshStandardMaterial color="green" side={DoubleSide} />
-  </T.Mesh>
-  />
-</T.Group>
-
-<!-- wavefront background 
-<T.Group position={[0, 0, wfeOffsetZ]} rotation={[0, -0.9, 0]} visible={true}>
-  <DisplayContour
-    xsraw={raygroup[1]}
-    ysraw={raygroup[2]}
-    horizontalScale={horizontalScale / 2}
-    {verticalScale}
-    {verticalOffset}
-  />
-</T.Group>
--->
-
-<!-- shows the contour profile lines 
-<T.Group position={[0, 0, wfeOffsetZ]} rotation={[0, -0.9, 0]} visible={true}>
-  {#if showLineMultiColor}
-    {#each raygroup[5] as v, i}
-      <Line2 points={v} material={raygroup[6][i]} />
-      <Line2 points={v} material={raygroup[6][i]} rotation={l2rotation} />
-    {/each}
-  {/if}
-</T.Group> -->
 
 <!-- full contour shape -->
 <T.Mesh
@@ -468,54 +378,3 @@
   castShadow={true}
   />
 
-<!-- WFE Title -->
-<Text
-  text={"WFE  " + raygroup[3] + " waves"}
-  color={"white"}
-  fontSize={3}
-  anchorX={"center"}
-  anchorY={"middle"}
-  position={{
-    x: 0,
-    y: verticalOffset + verticalScale + 8,
-    z: wfeOffsetZ / 1.9 + 10,
-  }}
-  rotation={{
-    x: 0,
-    y: -1.5,
-    z: 0,
-  }}
-/>
-
-<!-- Ray Trace Title -->
-<Text
-  text={"Ray Trace"}
-  color={"white"}
-  fontSize={3}
-  anchorX={"center"}
-  anchorY={"middle"}
-  position={{
-    x: 0,
-    y: verticalOffset + verticalScale + 8,
-    z: -40,
-  }}
-  rotation={{
-    x: 0,
-    y: -1.5,
-    z: 0,
-  }}
-/>
-
-<HTML
-  position={{ x: 0, y: -20, z: -10 }}
-  rotation={{ x: 0, y: -1.6, z: 0 }}
-  scale={7}
-  transform
->
-  <button
-    on:click={toggleUseFrame}
-    class="rounded-full px-5 text-black bg-green-500 hover:opacity-90 active:opacity-70"
-  >
-    Start/Stop
-  </button>
-</HTML>
