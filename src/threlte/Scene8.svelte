@@ -10,6 +10,8 @@
     BufferAttribute,
     Vector2,
     Group,
+    PlaneGeometry,
+    MeshPhongMaterial,
   } from "three";
   import Lens, { Material, Surface } from "$lib/lens";
   import {
@@ -19,7 +21,7 @@
     makeExtendedSorce,
   } from "$lib/lightSource";
   import { genSolidLens } from "$lib/ThreeGutils";
-  import { generateCircleGrid, generateFibonacciRays, trace3DRayPath } from "$lib/raytrace";
+  import { generateCircleGrid, generateFibonacciRays, generateRandomRayVectors, generateRandomRays, generateRandomRays2, trace3DRayPath } from "$lib/raytrace";
   import type { Vector3D } from "$lib/vector";
   import { HTML } from "@threlte/extras";
   import DisplayContour from "./DisplayContour.svelte";
@@ -87,11 +89,10 @@
       lens.surf1.asphericTerms.coeffs[0] = a4step * step;
       lens.surf1.asphericTerms.coeffs[1] = a6step * step;
       step += 1;
-      raycount += 100;
+      raycount += 0;
       if (raycount > 1001) {
         raycount = 101;
       }
-      console.log("raycount", raycount);
 
       if (step > numsteps) {
         step = 0;
@@ -129,7 +130,9 @@
     string,
     LatheGeometry,
     Vector3[][],
-    LineMaterial[]
+    LineMaterial[],
+    BufferGeometry,
+    MeshPhongMaterial,
   ] {
     // const material = new LineBasicMaterial({ color: 0xff0000, linewidth: 1 })
     const linegroup: THREE.Line[] = [];
@@ -144,10 +147,11 @@
     //  -5,
     //  true
     //);
-    const crays = generateFibonacciRays(
-      entrancePupilHalfDiameter(source),
-      numrays,
-      -5);
+    //const crays2 = generateFibonacciRays(
+    //  entrancePupilHalfDiameter(source),
+    //  numrays,
+    //  -5);
+    const crays = generateRandomRays2(10001, 5, entrancePupilHalfDiameter(source), 0.001);
     crays.forEach((ray) => {
       let ps = trace3DRayPath(ray.pVector, ray.eDir, lens, source, refocus);
       surf1pts.push(new Vector3(ps[1].x, ps[1].y, ps[1].z));
@@ -225,11 +229,127 @@
           color: lut.getColor(colorindex).convertLinearToSRGB().getHex(),
           linewidth: stdlinewidths, // in pixels
           resolution: new Vector2(window.innerWidth, window.innerHeight),
-        })
+          })
       );
     }
 
-    return [linegroup, xsraw, ysraw, pk, image, vmulti, mats];
+
+
+
+    /*
+    let histo = extenedSrcHisto(surfimgpts, 0.1, 2, 0.005);
+    const height = histo.length;
+    console.log("🚀 ~ height:", height)
+    const width = histo.length > 0 ? histo[0].length : 0; 
+    const geometry = new PlaneGeometry(width, height, width - 1, height - 1);
+    console.log("🚀 ~ height:", height)
+    console.log("🚀 ~ height:", height)
+    const material = new MeshPhongMaterial({ color: 0x00ff00, side: DoubleSide });
+
+    for (let i = 0; i < width; i++) {
+      for (let j = 0; j < height; j++) {
+        console.log("🚀 ~ height:", height)
+        const index = i + j * width;
+        geometry.attributes.position.setZ(index, histo[j][i] );
+      }
+    }
+
+    */
+   // create a buffer geometry
+    let histo = extenedSrcHisto(surfimgpts, 0.1, 2, 0.004);
+    const height = histo.length;
+    console.log("🚀 ~ height:", height)
+    const width = histo.length > 0 ? histo[0].length : 0; 
+    console.log("🚀 ~ width:", width)
+    const n = height * width
+    console.log("🚀 ~ n:", n)
+    console.log("🚀 ~ height:", height)
+    const maxZ = findMaxValue(histo);
+    console.log("🚀 ~ maxZ:", maxZ)
+
+    //convert histo to points
+    const points = [];
+    for (let i = 0; i < histo.length; i++) {
+      for (let j = 0; j < histo[i].length; j++) {
+        points.push(new Vector3(i, j, histo[i][j]));
+      }
+    }
+
+    var geometry = new BufferGeometry();
+    var positions = new Float32Array(n * 3);  // position array
+    var colors = new Float32Array(n * 3);  // color array
+
+    // loop through the points array and fill the position and color arrays
+    for (var i = 0; i < n; i++) {
+      // get the point at index i
+      var point = points[i];
+
+      // set the position data at index i * 3, i * 3 + 1, and i * 3 + 2
+      positions[i * 3] = point.x / 2.5;
+      positions[i * 3 + 1] = point.y / 2.5;
+      positions[i * 3 + 2] = point.z * 2;
+
+      // set the color data based on the z value
+      // you can use any color mapping function you want
+      // here we use a simple linear interpolation between blue and red
+
+      var z = point.z;
+      var r = Math.max(0, Math.min(1, z / maxZ));
+      var b = 1 - r;
+      var g = 0;
+
+      // set the color data at index i * 3, i * 3 + 1, and i * 3 + 2
+      colors[i * 3] = r;
+      colors[i * 3 + 1] = g;
+      colors[i * 3 + 2] = b;
+    }
+
+    // set the position and color attributes of the geometry
+    geometry.setAttribute('position', new BufferAttribute(positions, 3));
+
+    const lcs = generateLatheColors(
+      geometry,
+      yMaxColor,
+      "rainbow",
+      numLuts
+    );
+    geometry.setAttribute("color", new BufferAttribute(lathcolors, 3));
+
+    // create a material that uses vertex colors
+    var material = new MeshPhongMaterial({vertexColors: true});
+
+    return [linegroup, xsraw, ysraw, pk, image, vmulti, mats, geometry, material];
+  }
+
+  function extenedSrcHisto( Vlist: Vector3[], fiber_radius: number, imageSizeMultiplier: number, binSize: number) {
+    const minbin = -imageSizeMultiplier * fiber_radius;  // max neg bin value
+    const maxbin = imageSizeMultiplier * fiber_radius;  // max pos bin value
+    const sbin = Math.floor((maxbin - minbin + 0.00005) / binSize) + 1;  // total number of bins
+
+    let vscale = ((Math.PI * (sbin - 1.0)) / (imageSizeMultiplier * 2.0))
+        * ((sbin - 1.0) / (imageSizeMultiplier * 2.0) - Math.SQRT1_2); // value to normalize total intensity to 1
+
+    // init array
+    let indata: number[][] = Array.from({ length: sbin }, () => new Array(sbin).fill(0));
+
+    let errors = 0;  // track errors for future use
+
+    for (const P of Vlist) {
+      const row = Math.round((P.x - minbin) / binSize);
+      const col = Math.round((P.y - minbin) / binSize);
+
+      if (row >= 0 && row < sbin && col >= 0 && col < sbin) {
+        indata[row][col] += 1;
+      } else {
+        errors++;
+      }
+    }
+
+    let maxz = findMaxValue(indata);
+    indata = divideArrayByConstant(indata, vscale * 0.01);
+    maxz = findMaxValue(indata);
+    console.log('maxz, vscale', maxz, vscale);
+    return indata;
   }
 
   function convert3Dto3(pts3d: Vector3D[]) {
@@ -240,8 +360,37 @@
     return pts3;
   }
 
+  function findMaxValue(array2D: number[][]): number {
+    let maxValue = Number.NEGATIVE_INFINITY; // Initialize with a very small value
 
-$: raygroup = addRays(lens, extSource, 0, raycount);
+    for (const row of array2D) {
+      for (const num of row) {
+        if (num > maxValue) {
+          maxValue = num;
+        }
+      }
+    }
+
+    return maxValue;
+  }
+
+  function divideArrayByConstant(array2D: number[][], constant: number): number[][] {
+    const result: number[][] = [];
+
+    for (const row of array2D) {
+      const newRow: number[] = [];
+
+      for (const value of row) {
+        newRow.push(value / constant);
+      }
+
+      result.push(newRow);
+    }
+
+    return result;
+  }
+
+  let raygroup = addRays(lens, extSource, 0, raycount);
 
   const showLineMultiColor = true;
 </script>
@@ -258,9 +407,9 @@ $: raygroup = addRays(lens, extSource, 0, raycount);
 
 <!-- Lens Section -->
 <T.Group
-  position={[0, verticalOffset, -60]}
-  rotation={[0, 0.4, 0]}
-  visible={true}
+  position={[0, verticalOffset + 10, -30]}
+  rotation={[0, 1.1, 0]}
+  visible={false}
 >
   <T.Mesh
     geometry={genSolidLens(lens, 51, 51)}
@@ -288,7 +437,7 @@ $: raygroup = addRays(lens, extSource, 0, raycount);
   />
 </T.Group>
 
-<!-- wavefront background -->
+<!-- wavefront background 
 <T.Group position={[0, 0, wfeOffsetZ]} rotation={[0, -0.9, 0]} visible={true}>
   <DisplayContour
     xsraw={raygroup[1]}
@@ -298,8 +447,9 @@ $: raygroup = addRays(lens, extSource, 0, raycount);
     {verticalOffset}
   />
 </T.Group>
+-->
 
-<!-- shows the contour profile lines -->
+<!-- shows the contour profile lines 
 <T.Group position={[0, 0, wfeOffsetZ]} rotation={[0, -0.9, 0]} visible={true}>
   {#if showLineMultiColor}
     {#each raygroup[5] as v, i}
@@ -307,18 +457,16 @@ $: raygroup = addRays(lens, extSource, 0, raycount);
       <Line2 points={v} material={raygroup[6][i]} rotation={l2rotation} />
     {/each}
   {/if}
-</T.Group>
+</T.Group> -->
 
 <!-- full contour shape -->
 <T.Mesh
-  geometry={raygroup[4]}
-  position={[0, verticalOffset, wfeOffsetZ]}
-  rotation={[0, 0, 0]}
+  geometry={raygroup[7]}
+  material={raygroup[8]}
+  position={[0, 0, 0]}
+  rotation={[-Math.PI / 2, 0, 0]}
   castShadow={true}
-  let:ref
->
-  <T.MeshPhongMaterial vertexColors={true} opacity={0.8} transparent side={2} />
-</T.Mesh>
+  />
 
 <!-- WFE Title -->
 <Text
@@ -359,7 +507,7 @@ $: raygroup = addRays(lens, extSource, 0, raycount);
 />
 
 <HTML
-  position={{ x: 0, y: 30, z: -10 }}
+  position={{ x: 0, y: -20, z: -10 }}
   rotation={{ x: 0, y: -1.6, z: 0 }}
   scale={7}
   transform
