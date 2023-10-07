@@ -124,7 +124,7 @@
     // let halfap = source.diameter / 2
 
     // generate random rays into angular space
-    const crays = generateRandomRays2(100000, 5, entrancePupilHalfDiameter(source), 0.001);
+    const crays = generateRandomRays2(10001, 5, entrancePupilHalfDiameter(source), 0.001);
 
     // trace rays and generate image plane points
     surfimgpts = cullImagePoints(crays, lens, source, refocus)
@@ -133,15 +133,49 @@
     let [_, numBins, farray] = extenedSrcHisto(surfimgpts, 0.1, 2, 0.004);
 
     var geometry = new BufferGeometry();
-    var colors = new Float32Array(numBins * numBins * 3);  // color array
-
-    let indices = genIndices(numBins, numBins);
+    var indices = genIndices(numBins, numBins);
 
     // set the position and color attributes of the geometry
     geometry.setIndex(indices);
     geometry.setAttribute('position', new BufferAttribute(farray, 3));
     geometry.computeVertexNormals();
-    var material = new MeshPhongMaterial({color: 'yellow', shininess: 1000, side: DoubleSide});
+    geometry.normalizeNormals();
+
+    let zMax = -1.1e-20;
+    for(let i = 2; i < farray.length; i += 3) {
+      if(farray[i] > zMax) {
+        zMax = farray[i];
+      }
+    }
+    console.log('zMax', zMax)
+    const lut = new Lut('rainbow', 101);
+    let colors = new Float32Array(indices.length);
+    for (let i = 0; i < indices.length; i += 3) {
+      let i0 = indices[i];
+      let i1 = indices[i + 1];
+      let i2 = indices[i + 2];
+      let z = (farray[i0 * 3 + 2] + farray[i1 * 3 + 2] + farray[i2 * 3 + 2]) / 3;
+      const color = lut.getColor(z * 50 / zMax);
+      colors[i] = color.r;
+      colors[i + 1] = color.g;
+      colors[i + 2] = color.b;
+    }
+    geometry.setAttribute('color', new BufferAttribute(colors, 3));
+    var material = new MeshPhongMaterial({vertexColors: true, shininess: 1000, side: DoubleSide});
+
+
+    console.log('numBins', numBins, 'farray', farray.length, 'indices', indices.length, 'colors', colors.length)
+    for (let i = 0; i < 105; i += 3) {
+      let i0 = indices[i];
+      let i1 = indices[i + 1];
+      let i2 = indices[i + 2];
+      let z = (farray[i0 * 3 + 2] + farray[i1 * 3 + 2] + farray[i2 * 3 + 2]) / 3;
+      console.log('is', i0, i1, i2, z )
+      console.log('izs', i0 * 3 + 2, i1 * 3 + 2, i2 * 3 + 2)
+      console.log(farray[i0 * 3 + 2], farray[i1 * 3 + 2], farray[i2 * 3 + 2])
+    }
+
+    console.log(farray);
 
     return [geometry, material];
   }
@@ -206,7 +240,7 @@
 <T.Mesh
   geometry={raygroup[0]}
   material={raygroup[1]}
-  position={[0, 0, 0]}
+  position={[0, -15, 0]}
   rotation={[-Math.PI / 2, 0, 0]}
   castShadow={true}
   />
