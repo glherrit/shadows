@@ -81,7 +81,9 @@ export function extenedSrcHisto( Vlist: Vector3[], fiber_radius: number, imageSi
     }
   }
 
-  const verticalScale = 0.001;
+  
+
+  const verticalScale = 0.1;
   const horizScale = 200;
 
   indata = divideArrayByConstant(indata, vscale * verticalScale);

@@ -26,6 +26,7 @@
     formatAxisLimit,
     generateLatheColors,
     genProfile3D,
+    saveTextToFile,
     scaleArray,
     xyToVector,
   } from "$lib/gUtils";
@@ -36,7 +37,7 @@
     25,
     6,
     Material.FusedSilica,
-    new Surface(25, 1 / 44),
+    new Surface(25, 1 / 22),
     new Surface(25, 0)
   );
   const wlen = 1.07;
@@ -47,6 +48,9 @@
   let conicend = -0.598611;
   let a4end = 2.909919e-7;
   let a6end = -2.13825e-10;
+  lens.surf1.k = conicend;
+  lens.surf1.asphericTerms.coeffs[0] = a4end
+  lens.surf1.asphericTerms.coeffs[1] = a6end;
 
   let numsteps = 100;
 
@@ -130,10 +134,35 @@
     surfimgpts = cullImagePoints(crays, lens, source, refocus)
 
     // create a buffer geometry
-    let [_, numBins, farray] = extenedSrcHisto(surfimgpts, 0.1, 2, 0.004);
+    let [array, numBins, farray] = extenedSrcHisto(surfimgpts, 0.1, 1, 0.005);
+    
+    let str = '';
+    for (let i = 0; i < array.length; i++) {
+      for (let j = 0; j < array[i].length; j++) {
+        if (j == 0) { 
+          str += array[i][j];
+        } else { 
+          str += ", " + array[i][j];
+       }
+      }
+      str += "\n";
+    }
+    //saveTextToFile(str, 'test.txt');
+
+    let str2 = '';
+    for (let i = 0; i < farray.length; i += 3) {
+      str2 += i/3 + ", " + farray[i] + ", " + farray[i + 1] + ", " + farray[i + 2] + "\n";
+    } 
+    //saveTextToFile(str2, 'test2.txt');
 
     var geometry = new BufferGeometry();
     var indices = genIndices(numBins, numBins);
+    let str3 = '';
+    for (let i = 0; i < indices.length; i += 3) {
+      let zaver = farray[indices[i] * 3 + 2]  + farray[indices[i + 1] * 3 + 2] + farray[indices[i + 2] * 3 + 2] / 3;
+      str3 += i/3 + ", " + indices[i] + ", " + indices[i + 1] + ", " + indices[i + 2] + ", " + zaver.toFixed(3) + "\n";
+    } 
+    //saveTextToFile(str3, 'str3.txt');
 
     // set the position and color attributes of the geometry
     geometry.setIndex(indices);
@@ -149,34 +178,25 @@
     }
     console.log('zMax', zMax)
     const lut = new Lut('rainbow', 101);
+    
     let colors = new Float32Array(indices.length);
+    let zs = [];
+    let zColors = [];
     for (let i = 0; i < indices.length; i += 3) {
       let i0 = indices[i];
       let i1 = indices[i + 1];
       let i2 = indices[i + 2];
       let z = (farray[i0 * 3 + 2] + farray[i1 * 3 + 2] + farray[i2 * 3 + 2]) / 3;
-      const color = lut.getColor(z * 50 / zMax);
+      const color = lut.getColor(z * 40 / zMax);
+      zColors.push(color);
+      zs.push(z / zMax);
       colors[i] = color.r;
       colors[i + 1] = color.g;
       colors[i + 2] = color.b;
     }
     geometry.setAttribute('color', new BufferAttribute(colors, 3));
-    var material = new MeshPhongMaterial({vertexColors: true, shininess: 1000, side: DoubleSide});
-
-
-    console.log('numBins', numBins, 'farray', farray.length, 'indices', indices.length, 'colors', colors.length)
-    for (let i = 0; i < 105; i += 3) {
-      let i0 = indices[i];
-      let i1 = indices[i + 1];
-      let i2 = indices[i + 2];
-      let z = (farray[i0 * 3 + 2] + farray[i1 * 3 + 2] + farray[i2 * 3 + 2]) / 3;
-      console.log('is', i0, i1, i2, z )
-      console.log('izs', i0 * 3 + 2, i1 * 3 + 2, i2 * 3 + 2)
-      console.log(farray[i0 * 3 + 2], farray[i1 * 3 + 2], farray[i2 * 3 + 2])
-    }
-
-    console.log(farray);
-
+    var material = new MeshPhongMaterial({vertexColors: true, shininess: 100, side: DoubleSide});
+    
     return [geometry, material];
   }
 
