@@ -72,34 +72,6 @@ export function generateRandomRays(
   return rays
 }
 
-export function generateRandomRays2(
-  numRays: number,
-  numAngles: number,
-  halfAp: number,
-  halfAng: number
-): Ray[] {
-  const rays = []
-
-  for (let i = 0; i < numRays; i++) {
-    const rotangle = Math.random() * 2 * Math.PI;
-    const distance = Math.random() * halfAp;
-    const x = distance * Math.cos(rotangle);
-    const y = distance * Math.sin(rotangle);
-
-    const pVector = new Vector3D(x, y, 0.0)
-
-    for (let i = 0; i < numAngles; i++) {
-      const rotangle = Math.random() * 2 * Math.PI;
-      const distance = Math.random() * halfAng;
-      const xdir = distance * Math.cos(rotangle);
-      const ydir = distance * Math.sin(rotangle);
-      const eDir = new Vector3D(xdir, ydir, Math.sqrt(1.0 - xdir ** 2 - ydir ** 2))
-      rays.push({ pVector, eDir })
-    }
-  }
-  return rays
-}
-
 export function generateCollimatedRayBundle(halfAp: number, stepsize: number, startZ = -10): Ray[] {
   const rays: Ray[] = []
   const diag = halfAp * halfAp

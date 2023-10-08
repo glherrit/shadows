@@ -14,12 +14,12 @@
   import {
     entrancePupilHalfDiameter,
     makeCollimatedFlattop,
-    type LightSource,
+    ExtendedSource,
     makeExtendedSorce,
   } from "$lib/lightSource";
   import { genSolidLens } from "$lib/ThreeGutils";
-  import { generateRandomRays2, trace3DRayPath } from "$lib/raytrace";
-  import type { Vector3D } from "$lib/vector";
+  import { generateRandomRays, generateRandomRays2, trace3DRayPath } from "$lib/raytrace";
+  import { Vector3D } from "$lib/vector";
   import { Lut } from "three/examples/jsm/math/Lut";
   import {
     chooseAxisLimits,
@@ -31,7 +31,7 @@
     xyToVector,
   } from "$lib/gUtils";
 
-  import { cullImagePoints, extenedSrcHisto, genIndices } from "$lib/meshUtils";
+  import { cullImagePoints, extenedSrcHisto, genIndices, genVertexColors } from "$lib/meshUtils";
 
   let lens: Lens = new Lens(
     25,
@@ -41,16 +41,15 @@
     new Surface(25, 0)
   );
   const wlen = 1.07;
-  const source = makeCollimatedFlattop(lens.surf1.ap * 0.45, wlen);
   const extSource = makeExtendedSorce(lens.surf1.ap * 0.45, wlen, 0.1);
   //console.log(lens, source);lens.surf1.ap * 0.45
 
   let conicend = -0.598611;
   let a4end = 2.909919e-7;
   let a6end = -2.13825e-10;
-  lens.surf1.k = conicend;
-  lens.surf1.asphericTerms.coeffs[0] = a4end
-  lens.surf1.asphericTerms.coeffs[1] = a6end;
+  lens.surf1.k = conicend / 1.35;
+  lens.surf1.asphericTerms.coeffs[0] = a4end / 1.35
+  lens.surf1.asphericTerms.coeffs[1] = a6end / 1.35;
 
   let numsteps = 100;
 
@@ -116,84 +115,39 @@
 
   function addRays(
     lens: Lens,
-    source: LightSource,
+    source: ExtendedSource,
     refocus: number,
     numrays: number = 11
   ): [
     BufferGeometry,
     MeshBasicMaterial,
   ] {
-    // const material = new LineBasicMaterial({ color: 0xff0000, linewidth: 1 })
-    const linegroup: THREE.Line[] = [];
-    // let halfap = source.diameter / 2
+
+    let efl = lens.EFL(source.wavelengths[0]);
+    let halfAng =  source.NA / efl;
 
     // generate random rays into angular space
-    const crays = generateRandomRays2(10001, 5, entrancePupilHalfDiameter(source), 0.001);
+    const crays = generateRandomRays(100000, 5, entrancePupilHalfDiameter(source), halfAng);
 
     // trace rays and generate image plane points
     surfimgpts = cullImagePoints(crays, lens, source, refocus)
 
-    // create a buffer geometry
-    let [array, numBins, farray] = extenedSrcHisto(surfimgpts, 0.1, 1, 0.005);
-    
-    let str = '';
-    for (let i = 0; i < array.length; i++) {
-      for (let j = 0; j < array[i].length; j++) {
-        if (j == 0) { 
-          str += array[i][j];
-        } else { 
-          str += ", " + array[i][j];
-       }
-      }
-      str += "\n";
-    }
-    //saveTextToFile(str, 'test.txt');
 
-    let str2 = '';
-    for (let i = 0; i < farray.length; i += 3) {
-      str2 += i/3 + ", " + farray[i] + ", " + farray[i + 1] + ", " + farray[i + 2] + "\n";
-    } 
-    //saveTextToFile(str2, 'test2.txt');
+    // create a buffer geometry
+    let [array, numBins, farray] = extenedSrcHisto(surfimgpts, 0.1, 3, 0.002);
+
+    // define colors for vertices
+    let colors = genVertexColors(farray, 101);
+
+    // define indices for all vertices
+    var indices = genIndices(numBins, numBins);
 
     var geometry = new BufferGeometry();
-    var indices = genIndices(numBins, numBins);
-    let str3 = '';
-    for (let i = 0; i < indices.length; i += 3) {
-      let zaver = farray[indices[i] * 3 + 2]  + farray[indices[i + 1] * 3 + 2] + farray[indices[i + 2] * 3 + 2] / 3;
-      str3 += i/3 + ", " + indices[i] + ", " + indices[i + 1] + ", " + indices[i + 2] + ", " + zaver.toFixed(3) + "\n";
-    } 
-    //saveTextToFile(str3, 'str3.txt');
 
-    // set the position and color attributes of the geometry
-    geometry.setIndex(indices);
     geometry.setAttribute('position', new BufferAttribute(farray, 3));
+    geometry.setIndex(indices);
     geometry.computeVertexNormals();
     geometry.normalizeNormals();
-
-    let zMax = -1.1e-20;
-    for(let i = 2; i < farray.length; i += 3) {
-      if(farray[i] > zMax) {
-        zMax = farray[i];
-      }
-    }
-    console.log('zMax', zMax)
-    const lut = new Lut('rainbow', 101);
-    
-    let colors = new Float32Array(indices.length);
-    let zs = [];
-    let zColors = [];
-    for (let i = 0; i < indices.length; i += 3) {
-      let i0 = indices[i];
-      let i1 = indices[i + 1];
-      let i2 = indices[i + 2];
-      let z = (farray[i0 * 3 + 2] + farray[i1 * 3 + 2] + farray[i2 * 3 + 2]) / 3;
-      const color = lut.getColor(z * 40 / zMax);
-      zColors.push(color);
-      zs.push(z / zMax);
-      colors[i] = color.r;
-      colors[i + 1] = color.g;
-      colors[i + 2] = color.b;
-    }
     geometry.setAttribute('color', new BufferAttribute(colors, 3));
     var material = new MeshPhongMaterial({vertexColors: true, shininess: 100, side: DoubleSide});
     

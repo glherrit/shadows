@@ -4,11 +4,13 @@ import type { Surface } from './lens'
 import type { LightSource } from './lightSource'
 import { trace3DRayPath } from './raytrace'
 import { Vector3D } from './vector'
+import { Lut } from 'three/examples/jsm/math/Lut'
 
 export interface Ray {
   pVector: Vector3D
   eDir: Vector3D
 }
+
 export function cullImagePoints(crays: Ray[], lens: Lens, source: LightSource, refocus: number): Vector3[] {
   const surfimgpts: Vector3[] = [];
   crays.forEach((ray) => {
@@ -79,12 +81,10 @@ export function extenedSrcHisto( Vlist: Vector3[], fiber_radius: number, imageSi
     } else {
       errors++;
     }
-  }
+  }  
 
-  
-
-  const verticalScale = 0.1;
-  const horizScale = 200;
+  const verticalScale = 0.0005;
+  const horizScale = 100;
 
   indata = divideArrayByConstant(indata, vscale * verticalScale);
 
@@ -102,8 +102,7 @@ export function extenedSrcHisto( Vlist: Vector3[], fiber_radius: number, imageSi
   return [indata, sbin, farray]
 }
 
-export function genIndices (w: number, h: number ) {
-  
+export function genIndices (w: number, h: number ) {  
   const indices = [];
   
   for (let i = 0; i < w - 1; i++) {
@@ -112,8 +111,7 @@ export function genIndices (w: number, h: number ) {
       const topRight = topLeft + 1;
       const bottomLeft = (i + 1) * h + j;
       const bottomRight = bottomLeft + 1;
-  
-      // Define two triangles for each quad
+
       // Triangle 1
       indices.push(topLeft, bottomLeft, topRight);
       // Triangle 2
@@ -121,6 +119,30 @@ export function genIndices (w: number, h: number ) {
     }
   }
   return indices;
+}
+
+export function genVertexColors(farray: Float32Array, numColors: number = 101) {
+  let zMax = maxFloat32Array(farray);
+  const lut = new Lut('rainbow', numColors);
+  let colors = new Float32Array(farray.length);
+  for (let i = 0; i < farray.length; i += 3) {
+    let z = farray[i + 2];
+    const color = lut.getColor(z  / zMax);
+    colors[i] = color.r;
+    colors[i + 1] = color.g;
+    colors[i + 2] = color.b;
+  }
+  return colors;
+}
+
+export function maxFloat32Array(farray: Float32Array, position: number = 2) {
+  let max = -1.1e-20;
+  for(let i = position; i < farray.length; i += 3) {
+    if(farray[i] > max) {
+      max = farray[i];
+    }
+  }
+  return max;
 }
 
 export function findMaxValue(array2D: number[][]): number {
