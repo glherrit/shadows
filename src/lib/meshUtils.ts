@@ -122,7 +122,7 @@ export function genIndices (w: number, h: number ) {
 }
 
 export function genVertexColors(farray: Float32Array, numColors: number = 101) {
-  let zMax = maxFloat32Array(farray);
+  let zMax = maxFloat32Array(farray) * 0.8;
   const lut = new Lut('rainbow', numColors);
   let colors = new Float32Array(farray.length);
   for (let i = 0; i < farray.length; i += 3) {

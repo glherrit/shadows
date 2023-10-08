@@ -18,7 +18,7 @@
     makeExtendedSorce,
   } from "$lib/lightSource";
   import { genSolidLens } from "$lib/ThreeGutils";
-  import { generateRandomRays, generateRandomRays2, trace3DRayPath } from "$lib/raytrace";
+  import { generateRandomRays} from "$lib/raytrace";
   import { Vector3D } from "$lib/vector";
   import { Lut } from "three/examples/jsm/math/Lut";
   import {
@@ -47,9 +47,9 @@
   let conicend = -0.598611;
   let a4end = 2.909919e-7;
   let a6end = -2.13825e-10;
-  lens.surf1.k = conicend / 1.35;
-  lens.surf1.asphericTerms.coeffs[0] = a4end / 1.35
-  lens.surf1.asphericTerms.coeffs[1] = a6end / 1.35;
+  lens.surf1.k = conicend;
+  lens.surf1.asphericTerms.coeffs[0] = a4end;
+  lens.surf1.asphericTerms.coeffs[1] = a6end;
 
   let numsteps = 100;
 
@@ -127,7 +127,7 @@
     let halfAng =  source.NA / efl;
 
     // generate random rays into angular space
-    const crays = generateRandomRays(100000, 5, entrancePupilHalfDiameter(source), halfAng);
+    const crays = generateRandomRays(100001, 5, entrancePupilHalfDiameter(source), halfAng);
 
     // trace rays and generate image plane points
     surfimgpts = cullImagePoints(crays, lens, source, refocus)
@@ -137,7 +137,7 @@
     let [array, numBins, farray] = extenedSrcHisto(surfimgpts, 0.1, 3, 0.002);
 
     // define colors for vertices
-    let colors = genVertexColors(farray, 101);
+    let colors = genVertexColors(farray, 11);
 
     // define indices for all vertices
     var indices = genIndices(numBins, numBins);
