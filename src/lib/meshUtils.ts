@@ -82,11 +82,14 @@ export function extenedSrcHisto( Vlist: Vector3[], fiber_radius: number, imageSi
       errors++;
     }
   }  
-
-  const verticalScale = 0.0005;
+  let mz = findMaxValue(indata);
+  
+  //console.log("🚀 ~ errors:", errors)
+  
+  const verticalScale = 1;
   const horizScale = 100;
-
-  indata = divideArrayByConstant(indata, vscale * verticalScale);
+  let maxz = findMaxValue(indata);
+  //indata = divideArrayByConstant(indata, verticalScale);
 
   var farray = new Float32Array(indata.length * indata[0].length * 3);
 
@@ -157,6 +160,27 @@ export function findMaxValue(array2D: number[][]): number {
   }
 
   return maxValue;
+}
+
+export function findMaxVector3(vecs: Vector3[]) {
+  let maxValue = Number.NEGATIVE_INFINITY; // Initialize with a very small value
+
+  vecs.forEach((vec) => {
+    if (vec.z > maxValue) {
+      maxValue = vec.z;
+    }
+  });
+  return maxValue;
+}
+
+export function sumArrayValues(arr: number[][]): number {
+  let total = 0;
+  for (let i = 0; i < arr.length; i++) {
+    for (let j = 0; j < arr[i].length; j++) {
+      total += arr[i][j];
+    }
+  }
+  return total;
 }
 
 export function divideArrayByConstant(array2D: number[][], constant: number): number[][] {

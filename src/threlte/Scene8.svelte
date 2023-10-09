@@ -31,7 +31,7 @@
     xyToVector,
   } from "$lib/gUtils";
 
-  import { cullImagePoints, extenedSrcHisto, genIndices, genVertexColors } from "$lib/meshUtils";
+  import { cullImagePoints, extenedSrcHisto, genIndices, genVertexColors, sumArrayValues } from "$lib/meshUtils";
 
   let lens: Lens = new Lens(
     25,
@@ -123,19 +123,58 @@
     MeshBasicMaterial,
   ] {
 
-    let efl = lens.EFL(source.wavelengths[0]);
-    let halfAng =  source.NA / efl;
+    const efl = lens.EFL(source.wavelengths[0]);
+    const halfAng =  source.NA / efl;
+    const imageSizeMultiplier = 3;
+    const fiber_radius = 0.1;
+    const binSize = 0.005;  // bin size in radians
+    const numRays = 20_000; 
+    const numAngles = 5;  // number of angles to generate rays
 
+    const minbin = -imageSizeMultiplier * fiber_radius;  // max neg bin value
+    const maxbin = imageSizeMultiplier * fiber_radius;  // max pos bin value
+    const sbin = Math.floor((maxbin - minbin + 0.00005) / binSize) + 1;  // total number of bins
+    
+    // value to normalize total intensity to 1
+    //Number of squares = πr^2 / s^2
+    let vscale = ((Math.PI * (sbin - 1.0)) / (2.0)) * ((sbin - 1.0) / (2.0) - Math.SQRT1_2); 
+   
     // generate random rays into angular space
-    const crays = generateRandomRays(100001, 5, entrancePupilHalfDiameter(source), halfAng);
+    const crays = generateRandomRays(numRays, numAngles, entrancePupilHalfDiameter(source), halfAng);
 
     // trace rays and generate image plane points
     surfimgpts = cullImagePoints(crays, lens, source, refocus)
 
-
     // create a buffer geometry
-    let [array, numBins, farray] = extenedSrcHisto(surfimgpts, 0.1, 3, 0.002);
-
+    let [array, numBins, farray] = extenedSrcHisto(surfimgpts, fiber_radius, imageSizeMultiplier, binSize);
+    console.log("======================")
+    let iradius = fiber_radius;
+    let v2 = fiber_radius;
+    let v3 = numRays * numAngles * binSize * binSize / (Math.PI * iradius * iradius);
+    console.log("vscale", vscale)
+    console.log("🚀 ~ v2:", v2)
+    console.log("🚀 ~ total Rays:", numRays * numAngles)
+    console.log("🚀 ~ est peak v3:", v3.toFixed(1))
+    console.log('maxz', Math.max(...array.flat()))
+    console.log('est act bin:', (Math.PI * iradius * iradius / ( binSize * binSize)).toFixed(0) );
+    console.log ('est peak:', (numAngles * numRays / (Math.PI * iradius * iradius / ( binSize * binSize))).toFixed(0));
+    console.log('packed sqs:', calculatePackedSquares(binSize, iradius));
+    let flatarray = array.flat();
+    let activeCells = 0;
+    let totalIntensity = 0;
+    let activeArray = [];
+    for (let i = 0; i < flatarray.length; i++) {
+      if ( flatarray[i] > 1) {
+        activeCells += 1;
+        totalIntensity += flatarray[i];
+        activeArray.push(flatarray[i]);
+      } 
+    }
+    console.log("🚀 ~ totalCells:", flatarray.length, sbin * sbin)
+    console.log("🚀 ~ activeCells:", activeCells)
+    console.log("🚀 ~ totalIntensity:", totalIntensity)
+    console.log("🚀 ~ aver Int:", (totalIntensity / activeCells).toFixed(1))
+    // console.log(activeArray)
     // define colors for vertices
     let colors = genVertexColors(farray, 11);
 
@@ -154,7 +193,11 @@
     return [geometry, material];
   }
 
-
+  function calculatePackedSquares(a: number, R: number): number {
+    const maxSquaresPerRow = Math.floor((2 * R) / a);
+    const totalSquares = Math.pow(maxSquaresPerRow, 2);
+    return totalSquares;
+  }
 
   function convert3Dto3(pts3d: Vector3D[]) {
     const pts3: THREE.Vector3[] = [];
