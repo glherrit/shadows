@@ -64,8 +64,12 @@ export function extenedSrcHisto( Vlist: Vector3[], fiber_radius: number, imageSi
 
   const sbin = Math.floor((maxbin - minbin + 0.00005) / binSize) + 1;  // total number of bins
 
-  let vscale = ((Math.PI * (sbin - 1.0)) / (imageSizeMultiplier * 2.0))
-      * ((sbin - 1.0) / (imageSizeMultiplier * 2.0) - Math.SQRT1_2); // value to normalize total intensity to 1
+  // fuzzy math use to scale histogram to 1.0
+  let vscale = Vlist.length / (0.9 * Math.PI * fiber_radius * fiber_radius / ( binSize * binSize));
+  //console.log("vlist", Vlist.length);
+  //console.log("🚀 ~ vscale:", vscale);
+  //console.log("🚀 ~ binSize:", binSize);
+
 
   // init array
   let indata: number[][] = Array.from({ length: sbin }, () => new Array(sbin).fill(0));
@@ -89,7 +93,7 @@ export function extenedSrcHisto( Vlist: Vector3[], fiber_radius: number, imageSi
   const verticalScale = 1;
   const horizScale = 100;
   let maxz = findMaxValue(indata);
-  //indata = divideArrayByConstant(indata, verticalScale);
+  indata = divideArrayByConstant(indata, vscale / 20);
 
   var farray = new Float32Array(indata.length * indata[0].length * 3);
 
